@@ -19,10 +19,18 @@ export async function signIn(formData: FormData) {
     return redirect(`/login?error=${encodeURIComponent(error.message)}`);
   }
 
+  // Get current user to fetch their specific profile
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return redirect("/login?error=Authentication failed");
+  }
+
   // Get user profile to determine where to redirect
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")
+    .eq("id", user.id)
     .single();
 
   if (profile?.role === "PATIENT") {
