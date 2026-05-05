@@ -1,44 +1,22 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { HeartPulse, ArrowRight, User, Lock, Stethoscope, ShieldAlert, Loader2 } from "lucide-react";
+import { HeartPulse, ArrowRight, User, Lock, Stethoscope, ShieldAlert, AlertCircle } from "lucide-react";
+import { signIn } from "./actions";
+import { useSearchParams } from "next/navigation";
 
 type TabType = "patient" | "staff" | "admin";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("patient");
-  const [email, setEmail] = useState("patient@example.com");
-  const [password, setPassword] = useState("patient123");
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (activeTab === "patient") {
-      setEmail("patient@example.com");
-      setPassword("patient123");
-    } else if (activeTab === "staff") {
-      setEmail("dr.smith@marybegg.com");
-      setPassword("staff123");
-    } else if (activeTab === "admin") {
-      setEmail("admin@marybegg.com");
-      setPassword("admin123");
-    }
-  }, [activeTab]);
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    // Simulate network delay
-    setTimeout(() => {
-      if (activeTab === "patient") {
-        router.push("/patient/portal");
-      } else {
-        router.push("/hospital/dashboard");
-      }
-    }, 1200);
+  const handleSubmit = async (e: React.FormEvent) => {
+    // We can either use action property on form or handleSubmit
+    // Since we want loading state, we'll use handleSubmit
   };
 
   return (
@@ -108,22 +86,33 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form className="space-y-5" onSubmit={handleLogin}>
+          {error && (
+            <div className="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-xl flex items-center gap-3 text-rose-600 animate-in fade-in slide-in-from-top-2 duration-300">
+              <AlertCircle size={20} />
+              <p className="text-[13px] font-medium">{error}</p>
+            </div>
+          )}
+
+          <form action={async (formData) => {
+            setIsLoading(true);
+            await signIn(formData);
+            setIsLoading(false);
+          }} className="space-y-5">
+            <input type="hidden" name="role" value={activeTab.toUpperCase()} />
             <div>
               <label className="block text-[13px] font-bold text-slate-900 mb-2">
-                {activeTab === "patient" ? "Email or Patient ID" : "Email or Staff Number"}
+                {activeTab === "patient" ? "Email Address" : "Email Address"}
               </label>
               <div className="relative">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
                   {activeTab === "patient" ? <User size={18} /> : activeTab === "staff" ? <Stethoscope size={18} /> : <ShieldAlert size={18} />}
                 </div>
                 <input 
-                  type="text" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  name="email"
+                  type="email" 
+                  required
                   className="w-full pl-10 pr-4 py-3 bg-[#f0f4f8] border border-transparent focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 rounded-xl outline-none transition-all text-[14px] text-slate-900 placeholder:text-slate-400"
                   placeholder={activeTab === "patient" ? "patient@example.com" : "admin@hospital.com"}
-                  required
                 />
               </div>
             </div>
@@ -137,12 +126,11 @@ export default function LoginPage() {
                   <Lock size={18} />
                 </div>
                 <input 
+                  name="password"
                   type="password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  required
                   className="w-full pl-10 pr-4 py-3 bg-[#f0f4f8] border border-transparent focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 rounded-xl outline-none transition-all text-[14px] text-slate-900 placeholder:text-slate-400 tracking-widest"
                   placeholder="••••••••"
-                  required
                 />
               </div>
             </div>
@@ -165,19 +153,10 @@ export default function LoginPage() {
             <button 
               type="submit" 
               disabled={isLoading}
-              className="w-full bg-brand-600 text-white font-medium text-[15px] py-3 rounded-xl hover:bg-brand-700 hover:shadow-lg hover:shadow-brand-600/20 transition-all flex justify-center items-center gap-2 group disabled:opacity-80 disabled:cursor-not-allowed"
+              className="w-full bg-brand-600 text-white font-medium text-[15px] py-3 rounded-xl hover:bg-brand-700 hover:shadow-lg hover:shadow-brand-600/20 disabled:opacity-70 disabled:cursor-not-allowed transition-all flex justify-center items-center gap-2 group"
             >
-              {isLoading ? (
-                <>
-                  <Loader2 size={18} className="animate-spin" />
-                  Signing In...
-                </>
-              ) : (
-                <>
-                  Sign In 
-                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
+              {isLoading ? "Signing in..." : "Sign In"}
+              {!isLoading && <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />}
             </button>
           </form>
 
