@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { HeartPulse, ArrowRight, User, Lock, Stethoscope, ShieldAlert, AlertCircle } from "lucide-react";
 import { signIn } from "./actions";
@@ -8,16 +8,11 @@ import { useSearchParams } from "next/navigation";
 
 type TabType = "patient" | "staff" | "admin";
 
-export default function LoginPage() {
+function LoginContent() {
   const [activeTab, setActiveTab] = useState<TabType>("patient");
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
   const [isLoading, setIsLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    // We can either use action property on form or handleSubmit
-    // Since we want loading state, we'll use handleSubmit
-  };
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center p-4 font-sans">
@@ -168,5 +163,20 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="w-12 h-12 bg-slate-200 rounded-full mb-4"></div>
+          <div className="w-32 h-4 bg-slate-200 rounded"></div>
+        </div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
