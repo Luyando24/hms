@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   HeartPulse, 
   LayoutDashboard, 
@@ -26,7 +26,15 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { isOpen, close } = useMobileNav();
+
+  const handleLogout = () => {
+    // Simulate logout delay
+    setTimeout(() => {
+      router.push("/login");
+    }, 500);
+  };
 
   return (
     <>
@@ -91,6 +99,7 @@ export function Sidebar() {
           Settings
         </Link>
         <button
+          onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all duration-200"
         >
           <LogOut size={20} strokeWidth={2} className="text-slate-400 group-hover:text-rose-500" />
